@@ -57,6 +57,15 @@ poss(loosen(X, Y), S) :- not inside(wrench, trunk, S), nuts(X), hub(Y), on(X, Y,
 poss(tighten(X, Y), S) :- not inside(wrench, trunk, S), nuts(X), hub(Y), on(X, Y, S),
                         not tight(X, Y, S), on(Y, ground, S).
 
+poss(jackUp(Object), S) :- .
+
+poss(jackDown(Object), S) :- .
+
+poss(remove(Nuts, Hub), S) :- .
+poss(remove(Wheel, Hub), S) :- .
+
+poss(putOn(Nuts, Hub), S) :- .
+poss(putOn(Wheel, Hub), S) :- .
 
 		/* Successor State Axioms */
 
@@ -64,6 +73,23 @@ inside(Object, Container, [putAway(Object,Container) | S]) :- is_container(Conta
 inside(Object, Container, [A | S]) :- inside( Object, Container, S ),
 		not A=fetch(Object,Container).
 
+inflated(W, [A|S]) :- inflated(W, S).
+
+isClosed(C, [close(C)|S]).
+isClosed(C, [A|S]) :- isClosed(C, S), not A = open(C).
+
+% the have fluent goes here
+
+tight(N, H, [tighten(N, H)|S]) :- nuts(N), hub(H).
+tight(N, H, [A|S]) :- nuts(N), hub(H), not A = loosen(N, H).
+
+% the on fluent goes here
+
+fastened(H, [putOn(N, H)|S]) :- nuts(N), hub(H).
+fastened(H, [A|S]) :- nuts(N), hub(H), not A = remove(N, H).
+
+free(H, [remove(W, H)|S]) :- hub(H), wheel(W).
+free(H, [A|S]) :- hub(H), wheel(W), not A = putOn(W, H).
 
 		/* Declarative  Heuristics */
 
