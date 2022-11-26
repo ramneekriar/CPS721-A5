@@ -35,6 +35,22 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 		/* Precondition Axioms */
 
+% power up an instrument Ins on a satellite Sat
+% only if no other instrument at Sat is powered)
+poss(up(Ins, Sat), S) :- powered(Ins, Sat, S), not (powered(OtherIns, Sat, S)), not Ins=OtherIns.
+
+% power down an instrument Ins on a satellite Sat;
+poss(down(Ins, Sat), S) :- not (powered(Ins, Sat, S)).
+
+% turn a satellite Sat from a direction Dir1 to another direction Dir2;
+poss(turnTo(Sat, Dir1, Dir2), S) :- available(Sat, Dir1), available(Sat, Dir2), pointsTo(Sat, Dir2, S).
+
+% run calibrate procedure using a ground station G for an instrument Ins on a satellite Sat
+poss(runCalibrateProc(Ins, Sat, G), S) :- target(Ins, G), calibrated(Ins, Sat, S).
+
+% instrument Ins on a satellite Sat takes image of object in Dir using a mode M
+poss(takeImage(Ins, Sat, M, Dir), S) :- supports(Ins, Sat, M), hasImage(Sat, M, Dir, S).
+
 
 		/* Successor state axioms */
 
