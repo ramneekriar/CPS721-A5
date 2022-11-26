@@ -37,40 +37,52 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
-poss(up(Ins, Sat), S) :- powered(Ins, Sat, S), not (calibrated(Ins, Sat, S)),
-                         not (powered(OtherIns, Sat, S)), not (Ins=OtherIns).
+poss(up(Ins, Sat), S) :-   powered(Ins, Sat, S), 
+                           not (calibrated(Ins, Sat, S)),
+                           not (powered(OtherIns, Sat, S)), 
+                           not (Ins=OtherIns).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- not (powered(Ins, Sat, S)).
 
 % turn a satellite Sat from a direction Dir1 to another direction Dir2;
-poss(turnTo(Sat, Dir1, Dir2), S) :- available(Sat, Dir1), available(Sat, Dir2), pointsTo(Sat, Dir2, S).
+poss(turnTo(Sat, Dir1, Dir2), S) :- available(Sat, Dir1), 
+                                    available(Sat, Dir2), 
+                                    pointsTo(Sat, Dir2, S).
 
 % run calibrate procedure using a ground station G for an instrument Ins on a satellite Sat
-poss(runCalibrateProc(Ins, Sat, G), S) :- available(Sat, _), target(Ins, G), calibrated(Ins, Sat, S).
+poss(runCalibrateProc(Ins, Sat, G), S) :- available(Sat, _), 
+                                          target(Ins, G), 
+                                          calibrated(Ins, Sat, S).
 
 % instrument Ins on a satellite Sat takes image of object in Dir using a mode M
 poss(takeImage(Ins, Sat, M, Dir), S) :-   powered(Ins, Sat, S), 
                                           calibrated(Ins, Sat, S), 
                                           pointsTo(Sat, Dir, S),
-                                          supports(Ins, Sat, M), hasImage(Sat, M, Dir, S).
+                                          supports(Ins, Sat, M), 
+                                          hasImage(Sat, M, Dir, S).
 
 
 		/* Successor state axioms */
 
 % Instr on Satell is powered in a situation S
-powered(Ins, Sat, [A|S]) :-  A = up(Ins, Sat), powered(Ins, Sat, S).
-% Remain powered on unless you are powered down
-powered(Ins, Sat, [A|S]) :- powered(Ins, Sat, S), not (A = down(Ins, Sat)).
+powered(Ins, Sat, [ up(Ins, Sat) |S]) :- powered(Ins, Sat, S).
+powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S), 
+                              not (A = down(Ins, Sat)).
 
 % A satellite Satell points in a direction Dir in a situation S
-pointsTo(Sat, Dir, [A|S]) :- A = turnTo(Sat, _, Dir), pointsTo(Sat, Dir, S).
+pointsTo(Sat, Dir, [ turnTo(Sat, _, Dir) |S]) :- pointsTo(Sat, Dir, S).
+pointsTo(Sat, Dir, [A|S]) :- pointsTo(Sat, Dir, S).
 
 % Instr on Satell is calibrated in a situation S
-calibrated(Ins, Sat, [A|S]) :- A = runCalibrateProc(Ins, Sat, G), calibrated(Ins, Sat, S).
+calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) |S]) :- calibrated(Ins, Sat, S).
+calibrated(Ins, Sat, [A|S]) :-   calibrated(Ins, Sat, S).
+                                 not (A = up(Ins, Sat)), 
+                                 not (A = down(Ins, Sat)).
 
 % A satellite Sat has an image in mode M of an object in Dir in a situation S
-hasImage(Sat, M, Dir, [A|S]) :- A = takeImage(Ins, Sat, M, Dir), hasImage(Ins, M, Dir, S).
+hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]) :- hasImage(Ins, M, Dir, S).
+hasImage(Sat, M , Dir, [A|S]) :- hasImage(Ins, M, Dir, S).
 
 		/* Declarative heuristics */
 
