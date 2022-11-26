@@ -1,4 +1,4 @@
-	/* cps721, Part 2, NASA domain: taking images from satellites */
+	/* cps721, Part 3, NASA domain: taking images from satellites */
         
 /* The following is necessary if rules with the same predicate in the head are not
  consecutive in your program. Read handout about Eclipse Prolog 6 for details.*/ 
@@ -12,18 +12,10 @@ solve_problem(L,N)  :-  C0 is cputime,
                    Cf is cputime, D is Cf - C0, nl,
                    write('Elapsed time (sec): '), write(D), nl.
 
-
-reachable(S,[]) :- initial_state(S).
-reachable(S2, [M | History]) :- reachable(S1,History),
-                        legal_move(S2,M,S1).
-
-
-/*
 reachable(S,[]) :- initial_state(S).
 reachable(S2, [M | History]) :- reachable(S1,History),
                         legal_move(S2,M,S1),
                         not useless(M,History).
-*/
 
 legal_move([A | S], A, S) :- poss(A,S).
 
@@ -88,3 +80,26 @@ hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]).
 hasImage(Sat, M , Dir, [A|S]) :- hasImage(Ins, M, Dir, S).
 
 		/* Declarative heuristics */
+
+% insert useless() stuff here
+
+% Do not power up an instrument twice in a row
+useless(up(Ins, Sat), [ up(Ins, Sat) | S]).
+
+% Do not power up and instrument if you just powered it down
+useless(up(Ins, Sat), [ down(Ins, Sat) | S]).
+
+% Do not power down an instrument if you just powered it up
+useless(down(Ins, Sat), [ up(Ins, Sat) | S]).
+
+% Don't calibrate an instrument if you just calibrated it
+useless(runCalibrateProc(Ins, Sat, G), [ runCalibrateProc(Ins, Sat, G) | S]).
+
+% Don't turnTo the direction you were just looking at
+useless(turnTo(Sat, Y, X), [ turnTo(Sat, X, Y) | S]).
+
+% Don't power down something that is already powered down
+useless(down(Ins, Sat), [ down(Ins, Sat) | S]).
+
+% Don't take an image of something twice back to back
+useless(takeImage(Ins, Sat, M, Dir), [ takeImage(Ins, Sat, M, Dir) | S]).
