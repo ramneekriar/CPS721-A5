@@ -12,15 +12,17 @@ solve_problem(L,N)  :-  C0 is cputime,
                    Cf is cputime, D is Cf - C0, nl,
                    write('Elapsed time (sec): '), write(D), nl.
 
+/*
 reachable(S,[]) :- initial_state(S).
 reachable(S2, [M | History]) :- reachable(S1,History),
                         legal_move(S2,M,S1).
+*/
 
-/*
+reachable(S,[]) :- initial_state(S).
 reachable(S2, [M | History]) :- reachable(S1,History),
                         legal_move(S2,M,S1),
                         not useless(M,History).
-*/
+
 legal_move([A | S], A, S) :- poss(A,S).
 
 initial_state([]).
@@ -37,9 +39,10 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
-poss(up(Ins, Sat), S) :-   not (powered(Ins, Sat, S)),
-                           not (calibrated(Ins, Sat, S)),
-                           not (powered(OtherIns, Sat, S), Ins=OtherIns).
+poss(up(Ins, Sat), S) :-   not ( powered(Ins, Sat, S),
+                                 calibrated(Ins, Sat, S),
+                                 powered(OtherIns, Sat, S), 
+                                 Ins=OtherIns).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
@@ -70,7 +73,7 @@ powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S),
 
 % A satellite Satell points in a direction Dir in a situation S
 pointsTo(Sat, Dir, [ turnTo(Sat, _, Dir) | S]).
-pointsTo(Sat, Dir, [A|S]) :- pointsTo(Sat, Dir, S).
+pointsTo(Sat, Dir, [A|S]) :- pointsTo(Sat, Dir, S), not( A = turnTo(Sat, Dir, _, S)).
 
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
@@ -88,3 +91,21 @@ hasImage(Sat, M , Dir, [A|S]) :- hasImage(Ins, M, Dir, S).
 
 % Do not power up an instrument twice in a row
 useless(up(Ins, Sat), [ up(Ins, Sat) | S]).
+
+% Do not power up and instrument if you just powered it down
+useless(up(Ins, Sat), [ down(Ins, Sat) | S]).
+
+% Do not power down an instrument if you just powered it up
+useless(down(Ins, Sat), [ up(Ins, Sat) | S]).
+
+% Don't calibrate an instrument if you just calibrated it
+useless(runCalibrateProc(Ins, Sat, G), [ runCalibrateProc(Ins, Sat, G) | S]).
+
+% Don't turnTo the direction you were just looking at
+useless(turnTo(Sat, Y, X), [ turnTo(Sat, X, Y) | S]).
+
+% Don't power down something that is already powered down
+useless(down(Ins, Sat), [ down(Ins, Sat) | S]).
+
+% Don't take an image of something twice back to back
+useless(takeImage(Ins, Sat, M, Dir), [ takeImage(Ins, Sat, M, Dir) | S]).
