@@ -33,11 +33,14 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
-poss(up(Ins, Sat), S) :-   not (
-                                powered(Ins, Sat, S),
-                                calibrated(Ins, Sat, S),
-                                powered(OtherIns, Sat, S), 
-                                not Ins=OtherIns).
+poss(up(Ins, Sat), S) :-   supports(Ins, Sat, _),
+                           supports(OtherIns, Sat, _),
+                           not (
+                           powered(Ins, Sat, S),
+                           calibrated(Ins, Sat, S),
+                           powered(OtherIns, Sat, S), 
+                           not Ins=OtherIns
+                           ).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
@@ -75,8 +78,8 @@ pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S),
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
 calibrated(Ins, Sat, [A|S]) :-   calibrated(Ins, Sat, S),
-                                 not (A = up(Ins, Sat)),
-                                 not (A = down(Ins, Sat)).
+                                 not (A = up(Ins, Sat)).
+                                % not (A = down(Ins, Sat)).
 
 % A satellite Sat has an image in mode M of an object in Dir in a situation S
 hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]).

@@ -41,10 +41,14 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
-poss(up(Ins, Sat), S) :-   not  (powered(Ins, Sat, S),
-                                 calibrated(Ins, Sat, S),
-                                 powered(OtherIns, Sat, S), 
-                                 not Ins=OtherIns).
+poss(up(Ins, Sat), S) :-   supports(Ins, Sat, _),
+                           supports(OtherIns, Sat, _),
+                           not (
+                           powered(Ins, Sat, S),
+                           calibrated(Ins, Sat, S),
+                           powered(OtherIns, Sat, S), 
+                           not Ins=OtherIns
+                           ).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
