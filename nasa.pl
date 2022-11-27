@@ -29,18 +29,15 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
    run a query. Do NOT insert this file here because your program 
    will be tested using different initial and goal states.      */
 
-		/* Precondition Axioms */
+        /* Precondition Axioms */
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
 poss(up(Ins, Sat), S) :-   supports(Ins, Sat, _),
-                           supports(OtherIns, Sat, _),
                            not (
                            powered(Ins, Sat, S),
-                           calibrated(Ins, Sat, S),
                            powered(OtherIns, Sat, S), 
-                           not Ins=OtherIns
-                           ).
+                           not Ins=OtherIns).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
@@ -48,10 +45,10 @@ poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
 % turn a satellite Sat from a direction Dir1 to another direction Dir2;
 poss(turnTo(Sat, Dir1, Dir2), S) :- available(Sat, Dir1), 
                                     available(Sat, Dir2), 
-                                    pointsTo(Sat, Dir1, S).
+                                    not (pointsTo(Sat, Dir2, S)).
 
 % run calibrate procedure using a ground station G for an instrument Ins on a satellite Sat
-poss(runCalibrateProc(Ins, Sat, G), S) :- pointsTo(Sat, Dir, S),
+poss(runCalibrateProc(Ins, Sat, G), S) :- pointsTo(Sat, G, S),
                                           target(Ins, G),
                                           powered(Ins, Sat, S).
 
@@ -71,48 +68,30 @@ powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S),
                               not (A = down(Ins, Sat)).
 
 % A satellite Satell points in a direction Dir in a situation S
-pointsTo(Sat, Dir, [ turnTo(Sat, _, Dir) | S]).
+pointsTo(Sat, Dir, [ turnTo(Sat, Dir1, Dir) | S]).
 pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S), 
-                                not (A = turnTo(Sat, Dir, _)).
+                                not (A = turnTo(Sat, Dir1, Dir2),
+                                not Dir = Dir2).
 
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
 calibrated(Ins, Sat, [A|S]) :-   calibrated(Ins, Sat, S),
-                                 not (A = up(Ins, Sat)).
-                                % not (A = down(Ins, Sat)).
+                                 not (A = runCalibrateProc(Ins, Sat, G)).
 
 % A satellite Sat has an image in mode M of an object in Dir in a situation S
 hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]).
-hasImage(Sat, M , Dir, [A|S]) :- hasImage(Sat, M, Dir, S).
+hasImage(Sat, M , Dir, [A|S]) :- hasImage(Sat, M, Dir, S),
+                                 not (A = takeImage(Ins, Sat, M, Dir)).
+
+
 
 		/* Declarative heuristics */
+useless(up(Ins, Sat), [A|S]) :- A = up(Ins, Sat).
+useless(down(Ins, Sat), [A|S]) :- A = down(Ins, Sat).
 
-% insert useless() stuff here
+useless(up(Ins, Sat), [A|S]) :- A = down(Ins, Sat).
+useless(down(Ins, Sat), [A|S]) :- A = up(Ins, Sat).
 
-% Do not power up an instrument twice in a row
-useless(up(Ins, Sat), [ up(Ins, Sat) | S]).
+useless(turnTo(Sat, Dir1, Dir2), [A|S]) :- A = turnTo(Sat, Dir3, Dir4).
 
-% Do not power up and instrument if you just powered it down
-useless(up(Ins, Sat), [ down(Ins, Sat) | S]).
-
-% Do not power down an instrument if you just powered it up
-useless(down(Ins, Sat), [ up(Ins, Sat) | S]).
-
-% Don't calibrate an instrument if you just calibrated it
-useless(runCalibrateProc(Ins, Sat, G), [ runCalibrateProc(Ins, Sat, G) | S]).
-
-% Don't turnTo the direction you were just looking at
-useless(turnTo(Sat, Y, X), [ turnTo(Sat, X, Y) | S]).
-
-% Don't power down something that is already powered down
-useless(down(Ins, Sat), [ down(Ins, Sat) | S]).
-
-% Don't take an image of something twice back to back
-useless(takeImage(Ins, Sat, M, Dir), [ takeImage(Ins, Sat, M, Dir) | S]).
-
-% Don't try to take a picture if you power down
-useless(takeImage(Ins, Sat, M, Dir), [ down(Ins, Sat) | S]).
-
-% Don't try to calibrate the instrument if you power down
-useless(runCalibrateProc(Ins, Sat, G), [ down(Ins, Sat) | S]).
-
+useless(takeImage(Ins, Sat, M, Dir), [A|S]) :- A = takeImage(Ins, Sat, M, Dir).
