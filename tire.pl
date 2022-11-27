@@ -57,14 +57,14 @@ poss(putaway(X, Y), S) :-  is_container(Y),
                            not inside(X, Y, S), 
                            not isClosed(Y, S).
 
-poss(loosen(X, Y), S) :-   nuts(X), 
+poss(loosen(X, Y), S) :-   nut(X), 
                            hub(Y), 
                            have(wrench, S),
                            on(X, Y, S),
                            on(Y, ground, S),
                            tight(X, Y, S).
 
-poss(tighten(X, Y), S) :-  nuts(X), 
+poss(tighten(X, Y), S) :-  nut(X), 
                            hub(Y), 
                            have(wrench, S),
                            on(X, Y, S),
@@ -78,20 +78,20 @@ poss(jackUp(Object), S) :- have(jack, S),
 poss(jackDown(Object), S) :-  lifted(Object, S),
                               not on(Object, ground, S).
 
-poss(putOn(Nuts, Hub), S) :-  nut(Nuts),
+poss(putOn(Nut, Hub), S) :-  nut(Nut),
                               hub(Hub),
-                              have(Nuts, S),
+                              have(Nut, S),
                               have(wrench, S),
                               not (Hub, ground, S),
                               not fastened(Hub, S).
 
-poss(remove(Nuts, Hub), S) :- nut(Nuts),
+poss(remove(Nut, Hub), S) :- nut(Nut),
                               hub(Hub),
                               fastened(Hub, S),
                               have(wrench, S),
                               not on(Hub, ground, S),
-                              not on(Nuts, ground, S),
-                              not tight(Nuts, Hub, S).
+                              not on(Nut, ground, S),
+                              not tight(Nut, Hub, S).
 
 poss(putOn(Wheel, Hub), S) :- wheel(Wheel),
                               hub(Hub),
