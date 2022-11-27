@@ -43,29 +43,68 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
    might be tested using different initial and goal states.      */
 
 		/* Precondition Axioms */
-poss(open(C), S) :- is_container(C), isClosed(C, S).
+poss(open(C), S) :-  is_container(C), 
+                     isClosed(C, S).
 
-poss(close(C), S) :- is_container(C), not isClosed(C, S).
+poss(close(C), S) :- is_container(C), 
+                     not isClosed(C, S).
 
-poss(fetch(X, Y), S) :- is_container(Y), inside(X, Y, S), not isClosed(Y, S).
+poss(fetch(X, Y), S) :- is_container(Y),
+                        inside(X, Y, S), 
+                        not isClosed(Y, S).
 
-poss(putaway(X, Y), S) :- is_container(Y), not inside(X, Y, S), not isClosed(Y, S).
+poss(putaway(X, Y), S) :-  is_container(Y), 
+                           not inside(X, Y, S), 
+                           not isClosed(Y, S).
 
-poss(loosen(X, Y), S) :- not inside(wrench, trunk, S), nuts(X), hub(Y), on(X, Y, S), 
-                        tight(X, Y, S), on(Y, ground, S).
+poss(loosen(X, Y), S) :-   nuts(X), 
+                           hub(Y), 
+                           have(wrench, S),
+                           on(X, Y, S),
+                           on(Y, ground, S),
+                           tight(X, Y, S).
 
-poss(tighten(X, Y), S) :- not inside(wrench, trunk, S), nuts(X), hub(Y), on(X, Y, S),
-                        not tight(X, Y, S), on(Y, ground, S).
+poss(tighten(X, Y), S) :-  nuts(X), 
+                           hub(Y), 
+                           have(wrench, S),
+                           on(X, Y, S),
+                           on(Y, ground, S),
+                           not tight(X, Y, S).
 
-poss(jackUp(Object), S) :- .
+poss(jackUp(Object), S) :- have(jack, S),
+                           on(Object, ground, S),
+                           not lifted(Object, S).
 
-poss(jackDown(Object), S) :- .
+poss(jackDown(Object), S) :-  lifted(Object, S),
+                              not on(Object, ground, S).
 
-poss(remove(Nuts, Hub), S) :- .
-poss(remove(Wheel, Hub), S) :- .
+poss(putOn(Nuts, Hub), S) :-  nut(Nuts),
+                              hub(Hub),
+                              have(Nuts, S),
+                              have(wrench, S),
+                              not (Hub, ground, S),
+                              not fastened(Hub, S).
 
-poss(putOn(Nuts, Hub), S) :- .
-poss(putOn(Wheel, Hub), S) :- .
+poss(remove(Nuts, Hub), S) :- nut(Nuts),
+                              hub(Hub),
+                              fastened(Hub, S),
+                              have(wrench, S),
+                              not on(Hub, ground, S),
+                              not on(Nuts, ground, S),
+                              not tight(Nuts, Hub, S).
+
+poss(putOn(Wheel, Hub), S) :- wheel(Wheel),
+                              hub(Hub),
+                              have(Wheel, S),
+                              not on(Hub, ground, S),
+                              not fastened(Hub, S),
+                              not on(Wheel, Hub, S).
+
+poss(remove(Wheel, Hub), S) :-   wheel(Wheel),
+                                 hub(Hub),
+                                 on(Wheel, Hub, S),
+                                 not on(Hub, ground, S),
+                                 not fastened(Hub, S).
 
 		/* Successor State Axioms */
 
