@@ -33,10 +33,11 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
 
 % power up an instrument Ins on a satellite Sat
 % only if no other instrument at Sat is powered)
-poss(up(Ins, Sat), S) :-   not ( powered(Ins, Sat, S),
-                                 calibrated(Ins, Sat, S),
-                                 powered(OtherIns, Sat, S), 
-                                 Ins=OtherIns).
+poss(up(Ins, Sat), S) :-   not (
+                                powered(Ins, Sat, S),
+                                calibrated(Ins, Sat, S),
+                                powered(OtherIns, Sat, S), 
+                                not Ins=OtherIns).
 
 % power down an instrument Ins on a satellite Sat;
 poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
@@ -53,6 +54,7 @@ poss(runCalibrateProc(Ins, Sat, G), S) :- pointsTo(Sat, Dir, S),
 
 % instrument Ins on a satellite Sat takes image of object in Dir using a mode M
 poss(takeImage(Ins, Sat, M, Dir), S) :-   supports(Ins, Sat, M),
+                                          available(Sat, Dir),
                                           powered(Ins, Sat, S), 
                                           calibrated(Ins, Sat, S), 
                                           pointsTo(Sat, Dir, S).
@@ -67,17 +69,18 @@ powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S),
 
 % A satellite Satell points in a direction Dir in a situation S
 pointsTo(Sat, Dir, [ turnTo(Sat, _, Dir) | S]).
-pointsTo(Sat, Dir, [A|S]) :- pointsTo(Sat, Dir, S), not( A = turnTo(Sat, Dir, _, S)).
+pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S), 
+                                not (A = turnTo(Sat, Dir, _)).
 
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
 calibrated(Ins, Sat, [A|S]) :-   calibrated(Ins, Sat, S),
-                                 not (A = up(Ins, Sat)), 
+                                 not (A = up(Ins, Sat)),
                                  not (A = down(Ins, Sat)).
 
 % A satellite Sat has an image in mode M of an object in Dir in a situation S
 hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]).
-hasImage(Sat, M , Dir, [A|S]) :- hasImage(Ins, M, Dir, S).
+hasImage(Sat, M , Dir, [A|S]) :- hasImage(Sat, M, Dir, S).
 
 		/* Declarative heuristics */
 
@@ -103,3 +106,10 @@ useless(down(Ins, Sat), [ down(Ins, Sat) | S]).
 
 % Don't take an image of something twice back to back
 useless(takeImage(Ins, Sat, M, Dir), [ takeImage(Ins, Sat, M, Dir) | S]).
+
+% Don't try to take a picture if you power down
+useless(takeImage(Ins, Sat, M, Dir), [ down(Ins, Sat) | S]).
+
+% Don't try to calibrate the instrument if you power down
+useless(runCalibrateProc(Ins, Sat, G), [ down(Ins, Sat) | S]).
+

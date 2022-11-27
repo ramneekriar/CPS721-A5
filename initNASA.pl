@@ -8,25 +8,26 @@
 
   % comment out this initial and goal states after testing Part 2
 
-/*
-	%%  Initial situation and a domain specification %%
-supports(instr1,sat1,therm).
-available(sat1,ground17).
-available(sat1,comet2).
-available(sat1,orionStars).
-target(instr1,ground17).
 
-pointsTo(sat1,orionStars,[]).
+%  Initial situation and a domain specification %%
+% supports(instr1,sat1,therm).
+% available(sat1,ground17).
+% available(sat1,comet2).
+% available(sat1,orionStars).
+% target(instr1,ground17).
 
-		%% Goal State %%
-goal_state(S) :- hasImage(sat1,therm,comet2,S).
+% pointsTo(sat1,orionStars,[]).
+
+% 		%% Goal State %%
+% goal_state(S) :- hasImage(sat1,therm,comet2,S).
 
   % comment this out after testing successfully your rules in Part 2
-*/
 
-  %% remove this comment only if you work on Part 3 (bonus question)
 
-	%% Initial situation and a domain specification %%
+
+%% remove this comment only if you work on Part 3 (bonus question)
+
+%% Initial situation and a domain specification %%
 supports(tool1,sat1,therm).
 supports(tool2,sat1,spectr).
 available(sat1,andromeda).
@@ -43,3 +44,5 @@ goal_state(S) :- hasImage(sat1,therm,comet2,S),
                  hasImage(sat1,spectr,andromeda,S).
 
   %% remove this comment to test your rules for useless(A,ListOfActions)
+
+
