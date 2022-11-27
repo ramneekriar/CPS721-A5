@@ -82,8 +82,8 @@ pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S),
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
 calibrated(Ins, Sat, [A|S]) :-   calibrated(Ins, Sat, S),
-                                 not (A = up(Ins, Sat)).
-                                 %not (A = down(Ins, Sat)).
+                                 not (A = up(Ins, Sat)),
+                                 not (A = down(Ins, Sat)).
 
 % A satellite Sat has an image in mode M of an object in Dir in a situation S
 hasImage(Sat, M, Dir, [ takeImage(Ins, Sat, M, Dir) |S]).
