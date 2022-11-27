@@ -108,27 +108,44 @@ poss(remove(Wheel, Hub), S) :-   wheel(Wheel),
 
 		/* Successor State Axioms */
 
-inside(Object, Container, [putAway(Object,Container) | S]) :- is_container(Container).
-inside(Object, Container, [A | S]) :- inside( Object, Container, S ),
-		not A=fetch(Object,Container).
-
 inflated(W, [A|S]) :- inflated(W, S).
 
 isClosed(C, [close(C)|S]).
-isClosed(C, [A|S]) :- isClosed(C, S), not A = open(C).
+isClosed(C, [A|S]) :- isClosed(C, S), 
+                      not (A = open(C)).
 
-% the have fluent goes here
+inside(Object, Container, [putAway(Object,Container) | S]).
+inside(Object, Container, [A | S]) :- inside( Object, Container, S ),
+		                                not (A = fetch(Object,Container)).
 
-tight(N, H, [tighten(N, H)|S]) :- nuts(N), hub(H).
-tight(N, H, [A|S]) :- nuts(N), hub(H), not A = loosen(N, H).
+have(X, [fetch(X,C)|S]).
+have(X, [A|S]) :- have(X, S),
+                  not (A = putAway(X, C)).
+have(X, [remove(X,Y)|S]).
+have(X, [A|S]) :- have(X, S),
+                  not (A = putOn(X,Y)).
+have(X, [jackDown(X)|S]).
+have(X, [A|S]) :- have(X, S),
+                  not (A = jackUp(X)).
 
-% the on fluent goes here
+tight(N, H, [tighten(N, H)|S]).
+tight(N, H, [A|S]) :- tight(N, H, S), 
+                      not (A = loosen(N, H)).
 
-fastened(H, [putOn(N, H)|S]) :- nuts(N), hub(H).
-fastened(H, [A|S]) :- nuts(N), hub(H), not A = remove(N, H).
+lifted(X, [jackUp(X)|S]).
+lifted(X, [A|S]) :- lifted(X, S),
+                    not (A = jackDown(X)).
 
-free(H, [remove(W, H)|S]) :- hub(H), wheel(W).
-free(H, [A|S]) :- hub(H), wheel(W), not A = putOn(W, H).
+on(X, Y, [jackDown(X)|S]).
+on(X, Y, [A|S]) :- on(X, Y, S),
+                   not (A = jackUp(X)).
+
+fastened(H, [putOn(N, H)|S]).
+fastened(H, [A|S]) :- fastened(H, S), 
+                      not (A = remove(N, H)).
+
+free(H, [remove(W, H)|S]).
+free(H, [A|S]) :- free(H,S), 
+                  not (A = putOn(W, H)).
 
 		/* Declarative  Heuristics */
-
