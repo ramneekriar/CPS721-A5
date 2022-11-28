@@ -27,7 +27,7 @@
 
 %% remove this comment only if you work on Part 3 (bonus question)
 
-%% Initial situation and a domain specification %%
+% Initial situation and a domain specification %%
 supports(tool1,sat1,therm).
 supports(tool2,sat1,spectr).
 available(sat1,andromeda).
@@ -39,13 +39,9 @@ target(tool2,ground17).
 
 pointsTo(sat1,orionStars,[]).
 
-		%%  Goal state  %%
+%%  Goal state  %%
 goal_state(S) :- hasImage(sat1,therm,comet2,S), 
                  hasImage(sat1,spectr,andromeda,S).
-
-% goal_state(S) :- hasImage(sat1,therm,comet2,S),
-%                  hasImage(sat1,therm,andromeda,S), 
-%                  hasImage(sat1,spectr,andromeda,S).
 
   %% remove this comment to test your rules for useless(A,ListOfActions)
 
