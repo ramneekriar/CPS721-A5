@@ -191,23 +191,23 @@ free(H, [A|S]) :- free(H,S),
 		/* Declarative  Heuristics */
 
 % Useless to do redundant calls
-useless(open(X), [close(X)|S]).
-useless(close(X), [open(X)|S]).
+useless(open(Container), [close(Container)|S]).
+useless(close(Container), [open(Container)|S]).
 
 % Useless to do redundant calls
-useless(tighten(X, Y), [loosen(X, Y)|S]).
-useless(loosen(X, Y), [tighten(X, Y)|S]).
+useless(tighten(Nut, Hub), [loosen(Nut, Hub)|S]).
+useless(loosen(Nut, Hub), [tighten(Nut, Hub)|S]).
 
 % Need to jackUp before we can remove Nuts
-useless(remove(N, H), [A|S]) :-  nut(N), 
-                                 not (A = jackUp(H)).
+useless(remove(Nut, Hub), [A|S]) :-  nut(Nut), 
+                                     not (A = jackUp(Hub)).
 
 % Useless to do redundant calls
-useless(loosen(X,Y), [loosen(A,B)|S]).
-useless(tighten(X,Y), [tighten(A,B)|S]).
+useless(loosen(Nut, Hub), [loosen(OtherNut, OtherHub)|S]).
+useless(tighten(Nut, Hub), [tighten(OtherNut, OtherHub)|S]).
 
 % Need to jackDown before we can tighten
-useless(tighten(X, Y), [A|S]) :- not (A = jackDown(Y)).
+useless(tighten(Nut, Hub), [A|S]) :- not (A = jackDown(Hub)).
 
 % Need to putAway an Object before we can close Container
 useless(close(Container), [A|S]) :- not (A = putAway(Object, Container)).
@@ -226,19 +226,21 @@ useless(putOn(X, Y), [remove(X, Y)|S]).
 useless(remove(X, Y), [putOn(X, Y)|S]).
 
 % Useless to do redundant calls
-useless(putAway(X, _), [fetch(X, _)|S]).
-useless(fetch(X, _), [putAway(X, _)|S]).
+useless(putAway(Object, _), [fetch(Object, _)|S]).
+useless(fetch(Object, _), [putAway(Object, _)|S]).
 
 % Useless to put away Nuts
-useless(putAway(X, Y), [A|S]) :- nut(X).
+useless(putAway(Nut, Container), [A|S]) :- nut(Nut).
 
 % Useless to do redundant calls
 useless(jackUp(X), [jackDown(X)|S]).
 useless(jackDown(X), [jackUp(X)|S]).
 
 % Don't put away something and then later fetch it, and vice versa
-useless(fetch(X, _), [ _, putAway(X, _) |S]).
-useless(putAway(X, _), [ _, fetch(X, _) |S]).
+useless(fetch(Object, _), [ _, putAway(Object, _) |S]).
+useless(putAway(Object, _), [ _, fetch(Object, _) |S]).
 
-useless(fetch(X, Y), [A|S]) :- not (A=fetch(Z, Y)), 
-                               not (A = open(Y)).
+% Fetch items from Container simultaneously 
+% Fetch items right after opening the Container
+useless(fetch(Object, Container), [A|S]) :- not (A = fetch(OtherObject, Container)), 
+                                            not (A = open(Container)).
