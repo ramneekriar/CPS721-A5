@@ -15,7 +15,7 @@ GRAPHICS: Apple M1 Built-in GPU 7 Cores
 L = [takeImage(tool2, sat1, spectr, andromeda), turnTo(sat1, ground17, andromeda), takeImage(tool1, sat1, therm, comet2), turnTo(sat1, andromeda, comet2), runCalibrateProc(tool2, sat1, ground17), turnTo(sat1, andromeda, ground17), runCalibrateProc(tool1, sat1, ground17), turnTo(sat1, andromeda, ground17), up(tool2, sat1), up(tool1, sat1)]
 Yes (582.50s cpu, solution 1, maybe more)
 
-Without heuristics, the Prolog program explores all branches before it successfully arives at the goal_state. For example, it might explore a branch such as turnning to stations other than the ground station.
+Without heuristics, the Prolog program explores all branches before it successfully arives at the goal_state. For example, it might explore a branch such as turning to stations other than the ground station.
 
 As a result, due to there being no useless statements it increases the time the program takes to run and execute the given planning problem.
 
