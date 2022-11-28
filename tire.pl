@@ -21,13 +21,14 @@ solve_problem(G,L,N)  :-  C0 is cputime,
 
 reachable(S,[]) :- initial_state(S).
 
-reachable(S2, [M | History]) :- reachable(S1,History),
-                        legal_move(S2,M,S1).
-/* % remove comments when you test your declarative heuristics %
+% reachable(S2, [M | History]) :- reachable(S1,History),
+%                         legal_move(S2,M,S1).
+
+% remove comments when you test your declarative heuristics %
 reachable(S2, [M | History]) :- reachable(S1,History),
                         legal_move(S2,M,S1),
                         not useless(M,History).
-*/
+
 
 legal_move([A | S], A, S) :- poss(A,S).
 
@@ -43,20 +44,26 @@ max_length([_|L],N1) :- N1 > 0, N is N1 - 1, max_length(L,N).
    might be tested using different initial and goal states.      */
 
 		/* Precondition Axioms */
+
+% checked
 poss(open(C), S) :-  is_container(C), 
                      isClosed(C, S).
 
+% checked
 poss(close(C), S) :- is_container(C), 
                      not isClosed(C, S).
 
+% checked
 poss(fetch(X, Y), S) :- is_container(Y),
                         inside(X, Y, S), 
                         not isClosed(Y, S).
 
-poss(putaway(X, Y), S) :-  is_container(Y), 
-                           not inside(X, Y, S), 
+% checked
+poss(putAway(X, Y), S) :-  is_container(Y), 
+                           have(X, S),
                            not isClosed(Y, S).
 
+% checked
 poss(loosen(X, Y), S) :-   nut(X), 
                            hub(Y), 
                            have(wrench, S),
@@ -64,6 +71,7 @@ poss(loosen(X, Y), S) :-   nut(X),
                            on(Y, ground, S),
                            tight(X, Y, S).
 
+% checked
 poss(tighten(X, Y), S) :-  nut(X), 
                            hub(Y), 
                            have(wrench, S),
@@ -71,81 +79,166 @@ poss(tighten(X, Y), S) :-  nut(X),
                            on(Y, ground, S),
                            not tight(X, Y, S).
 
+% checked
 poss(jackUp(Object), S) :- have(jack, S),
                            on(Object, ground, S),
                            not lifted(Object, S).
 
+% checked
 poss(jackDown(Object), S) :-  lifted(Object, S),
                               not on(Object, ground, S).
 
-poss(putOn(Nut, Hub), S) :-  nut(Nut),
+% checked
+poss(putOn(Nut, Hub), S) :-   nut(Nut),
                               hub(Hub),
                               have(Nut, S),
                               have(wrench, S),
-                              not (Hub, ground, S),
+                              lifted(H, S),
                               not fastened(Hub, S).
 
-poss(remove(Nut, Hub), S) :- nut(Nut),
+% checked
+poss(remove(Nut, Hub), S) :-  nut(Nut),
                               hub(Hub),
-                              fastened(Hub, S),
                               have(wrench, S),
-                              not on(Hub, ground, S),
-                              not on(Nut, ground, S),
+                              fastened(Hub, S),
+                              on(Nut, Hub, S),
+                              lifted(Hub, S),
                               not tight(Nut, Hub, S).
 
+% checked
 poss(putOn(Wheel, Hub), S) :- wheel(Wheel),
                               hub(Hub),
                               have(Wheel, S),
-                              not on(Hub, ground, S),
+                              lifted(Hub, S),
+                              free(Hub, S),
                               not fastened(Hub, S),
                               not on(Wheel, Hub, S).
 
+% checked
 poss(remove(Wheel, Hub), S) :-   wheel(Wheel),
                                  hub(Hub),
                                  on(Wheel, Hub, S),
-                                 not on(Hub, ground, S),
+                                 lifted(Hub, S),
                                  not fastened(Hub, S).
 
 		/* Successor State Axioms */
 
-inflated(W, [A|S]) :- inflated(W, S).
+% checked
+inflated(W, [A|S]) :- wheel(W), inflated(W, S).
 
-isClosed(C, [close(C)|S]).
+% checked
+isClosed(C, [close(C)|S]). % is_container(C) ?
 isClosed(C, [A|S]) :- isClosed(C, S), 
                       not (A = open(C)).
 
-inside(Object, Container, [putAway(Object,Container) | S]).
+% checked
+inside(Object, Container, [putAway(Object,Container) | S]) :- is_container(Container).
 inside(Object, Container, [A | S]) :- inside( Object, Container, S ),
 		                                not (A = fetch(Object,Container)).
 
+% checked
 have(X, [fetch(X,C)|S]).
+have(X, [remove(X,Y)|S]).  
+have(jack, [jackDown(X)|S]).
 have(X, [A|S]) :- have(X, S),
-                  not (A = putAway(X, C)).
-have(X, [remove(X,Y)|S]).
-have(X, [A|S]) :- have(X, S),
-                  not (A = putOn(X,Y)).
-have(X, [jackDown(X)|S]).
-have(X, [A|S]) :- have(X, S),
-                  not (A = jackUp(X)).
+                  not (A = putAway(X, C)),
+                  not (A = putOn(X,Y)),
+                  not (X = jack, A = jackUp(Object)).
 
+% checked
 tight(N, H, [tighten(N, H)|S]).
 tight(N, H, [A|S]) :- tight(N, H, S), 
                       not (A = loosen(N, H)).
 
+% checked
 lifted(X, [jackUp(X)|S]).
 lifted(X, [A|S]) :- lifted(X, S),
                     not (A = jackDown(X)).
 
-on(X, Y, [jackDown(X)|S]).
-on(X, Y, [A|S]) :- on(X, Y, S),
-                   not (A = jackUp(X)).
+% checked
+on(Object, ground, [jackDown(Object)|S]).
+on(Object, ground, [A|S]) :- on(Object, ground, S),
+                             not (A = jackUp(Object)).
 
-fastened(H, [putOn(N, H)|S]).
+on(Object, Hub, [putOn(Object, Hub)|S]).
+
+on(W, H, [A|S]) :- wheel(W),
+                   hub(H),
+                   on(W, H, S),
+                   not (A = remove(W, H)).
+
+on(N, H, [A|S]) :- nut(N),
+                   hub(H),
+                   on(N, H, S),
+                   not (A = remove(N, H)).
+
+% checked
+fastened(H, [putOn(N, H)|S]) :- nut(N).
 fastened(H, [A|S]) :- fastened(H, S), 
-                      not (A = remove(N, H)).
+                      not (
+                      nut(N), 
+                      A = remove(N, H)
+                      ).
 
-free(H, [remove(W, H)|S]).
+% checked
+free(H, [remove(W, H)|S]) :- wheel(W).
 free(H, [A|S]) :- free(H,S), 
-                  not (A = putOn(W, H)).
+                  not (
+                  wheel(W), 
+                  A = putOn(W, H)
+                  ).
 
 		/* Declarative  Heuristics */
+
+% Useless to do redundant calls
+useless(open(X), [close(X)|S]).
+useless(close(X), [open(X)|S]).
+
+% Useless to do redundant calls
+useless(tighten(X, Y), [loosen(X, Y)|S]).
+useless(loosen(X, Y), [tighten(X, Y)|S]).
+
+% Need to jackUp before we can remove Nuts
+useless(remove(N, H), [A|S]) :-  nut(N), 
+                                 not (A = jackUp(H)).
+
+% Useless to do redundant calls
+useless(loosen(X,Y), [loosen(A,B)|S]).
+useless(tighten(X,Y), [tighten(A,B)|S]).
+
+% Need to jackDown before we can tighten
+useless(tighten(X, Y), [A|S]) :- not (A = jackDown(Y)).
+
+% Need to putAway an Object before we can close Container
+useless(close(Container), [A|S]) :- not (A = putAway(Object, Container)).
+
+% Useless to jackUp and then loosen Nuts since Hub cannot be lifted
+useless(loosen(Nut, Hub), [jackUp(Hub)|S]).
+
+% Have to loosen Nuts before we can jackUp
+useless(jackUp(Hub), [A|S]) :- not (A = loosen(Nut, Hub)).
+
+% Have to fetch the Wheels before we can loosen the Nuts
+useless(loosen(Nuts, Hub), [A|S]) :- not (A = fetch(W, H)).
+
+% Useless to do redundant calls
+useless(putOn(X, Y), [remove(X, Y)|S]).
+useless(remove(X, Y), [putOn(X, Y)|S]).
+
+% Useless to do redundant calls
+useless(putAway(X, _), [fetch(X, _)|S]).
+useless(fetch(X, _), [putAway(X, _)|S]).
+
+% Useless to put away Nuts
+useless(putAway(X, Y), [A|S]) :- nut(X).
+
+% Useless to do redundant calls
+useless(jackUp(X), [jackDown(X)|S]).
+useless(jackDown(X), [jackUp(X)|S]).
+
+% Don't put away something and then later fetch it, and vice versa
+useless(fetch(X, _), [ _, putAway(X, _) |S]).
+useless(putAway(X, _), [ _, fetch(X, _) |S]).
+
+useless(fetch(X, Y), [A|S]) :- not (A=fetch(Z, Y)), 
+                               not (A = open(Y)).
