@@ -45,7 +45,8 @@ poss(down(Ins, Sat), S) :- powered(Ins, Sat, S).
 % turn a satellite Sat from a direction Dir1 to another direction Dir2;
 poss(turnTo(Sat, Dir1, Dir2), S) :- available(Sat, Dir1), 
                                     available(Sat, Dir2), 
-                                    not (pointsTo(Sat, Dir2, S)).
+                                    not (pointsTo(Sat, Dir2, S)),
+                                    not Dir1 = Dir2.
 
 % run calibrate procedure using a ground station G for an instrument Ins on a satellite Sat
 poss(runCalibrateProc(Ins, Sat, G), S) :- pointsTo(Sat, G, S),
@@ -70,8 +71,8 @@ powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S),
 % A satellite Satell points in a direction Dir in a situation S
 pointsTo(Sat, Dir, [ turnTo(Sat, Dir1, Dir) | S]).
 pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S), 
-                                not (A = turnTo(Sat, Dir1, Dir2),
-                                not Dir = Dir2).
+                                not (A = turnTo(Sat, Dir1, Dir2)),
+                                not Dir = Dir2.
 
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
