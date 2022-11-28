@@ -43,6 +43,10 @@ pointsTo(sat1,orionStars,[]).
 goal_state(S) :- hasImage(sat1,therm,comet2,S), 
                  hasImage(sat1,spectr,andromeda,S).
 
+% goal_state(S) :- hasImage(sat1,therm,comet2,S),
+%                  hasImage(sat1,therm,andromeda,S), 
+%                  hasImage(sat1,spectr,andromeda,S).
+
   %% remove this comment to test your rules for useless(A,ListOfActions)
 
 

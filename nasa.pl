@@ -60,7 +60,6 @@ poss(takeImage(Ins, Sat, M, Dir), S) :-   supports(Ins, Sat, M),
                                           calibrated(Ins, Sat, S), 
                                           pointsTo(Sat, Dir, S).
 
-
 		/* Successor state axioms */
 
 % Instr on Satell is powered in a situation S
@@ -69,10 +68,10 @@ powered(Ins, Sat, [A|S]) :-   powered(Ins, Sat, S),
                               not (A = down(Ins, Sat)).
 
 % A satellite Satell points in a direction Dir in a situation S
-pointsTo(Sat, Dir, [ turnTo(Sat, Dir1, Dir) | S]).
+pointsTo(Sat, Dir, [ turnTo(Sat, OtherDir, Dir) | S]).
 pointsTo(Sat, Dir, [A|S]) :-    pointsTo(Sat, Dir, S), 
-                                not (A = turnTo(Sat, Dir1, Dir2)),
-                                not Dir = Dir2.
+                                not (A = turnTo(Sat, OtherDir, NewDir), 
+                                not NewDir = Dir).
 
 % Instr on Satell is calibrated in a situation S
 calibrated(Ins, Sat, [ runCalibrateProc(Ins, Sat, G) | S]).
@@ -87,12 +86,21 @@ hasImage(Sat, M , Dir, [A|S]) :- hasImage(Sat, M, Dir, S),
 
 
 		/* Declarative heuristics */
-useless(up(Ins, Sat), [A|S]) :- A = up(Ins, Sat).
-useless(down(Ins, Sat), [A|S]) :- A = down(Ins, Sat).
 
-useless(up(Ins, Sat), [A|S]) :- A = down(Ins, Sat).
-useless(down(Ins, Sat), [A|S]) :- A = up(Ins, Sat).
+% Useless redundant actions
+useless(up(Ins, Sat), [ up(Ins, Sat) |S]).
+useless(up(Ins, Sat), [ down(Ins, Sat) |S]).
 
-useless(turnTo(Sat, Dir1, Dir2), [A|S]) :- A = turnTo(Sat, Dir3, Dir4).
+% Useless redundant actions
+useless(down(Ins, Sat), [ down(Ins, Sat) |S]).
+useless(down(Ins, Sat), [ up(Ins, Sat) |S]).
 
-useless(takeImage(Ins, Sat, M, Dir), [A|S]) :- A = takeImage(Ins, Sat, M, Dir).
+useless(turnTo(Sat, Dir1, Dir2), [ turnTo(Sat, Dir3, Dir4) |S]).
+
+% Don't take an image of the same thing twice
+useless(takeImage(Ins, Sat, M, Dir), [ takeImage(Ins, Sat, M, Dir) |S]).
+
+% My additions
+useless(takeImage(Ins, Sat, M, Dir), [ down(Ins, Sat) | S]).
+useless(runCalibrateProc(Ins, Sat, G), [ down(Ins, Sat) | S]).
+useless(turnTo(Sat, Dir1, Dir2), [ turnTo(Sat, Dir2, Dir1) |S]).
